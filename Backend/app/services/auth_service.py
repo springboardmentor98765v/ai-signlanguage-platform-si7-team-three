@@ -1,37 +1,45 @@
-from passlib.context import CryptContext
+import bcrypt
+from jose import jwt
+from datetime import datetime, timedelta
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+SECRET_KEY = "mysupersecretkey"
+ALGORITHM = "HS256"
 
-fake_users = []
+users_db = []
+
 
 def register_user(user):
-    hashed_password = pwd_context.hash(user.password)
+    hashed_password = bcrypt.hashpw(
+        user.password.encode("utf-8"),
+        bcrypt.gensalt()
+    ).decode("utf-8")
 
-    new_user = {
+    users_db.append({
         "full_name": user.full_name,
         "email": user.email,
         "password": hashed_password
-    }
+    })
 
-    fake_users.append(new_user)
-
-    return {
-        "message": "User registered successfully",
-        "user": {
-            "full_name": user.full_name,
-            "email": user.email
-        }
-    }
+    return {"message": "User registered successfully"}
 
 
 def login_user(user):
-    for existing_user in fake_users:
-        if existing_user["email"] == user.email:
-            if pwd_context.verify(user.password, existing_user["password"]):
-                return {
-                    "message": "Login successful"
+    for db_user in users_db:
+        if db_user["email"] == user.email:
+            if bcrypt.checkpw(
+                user.password.encode("utf-8"),
+                db_user["password"].encode("utf-8")
+            ):
+                payload = {
+                    "sub": user.email,
+                    "exp": datetime.utcnow() + timedelta(hours=1)
                 }
 
-    return {
-        "message": "Invalid email or password"
-    }
+                token = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+
+                return {
+                    "access_token": token,
+                    "token_type": "bearer"
+                }
+
+    return {"message": "Invalid credentials"}
