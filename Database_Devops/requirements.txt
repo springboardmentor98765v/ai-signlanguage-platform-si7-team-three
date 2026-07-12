@@ -1,0 +1,21 @@
+fastapi==0.115.0
+uvicorn[standard]==0.30.6
+sqlalchemy==2.0.35
+alembic==1.13.3
+pydantic[email]==2.9.2
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+bcrypt==4.0.1
+python-multipart==0.0.9
+prometheus-fastapi-instrumentator==7.0.0
+
+# NOT YET USED by any code that currently runs (app/services/ai_prediction.py
+# is a pure-Python heuristic stub with zero dependencies on these).
+# Uncomment and install once the AI/ML or Computer Vision teammate starts
+# wiring in a real trained model / MediaPipe hand tracking. mediapipe's
+# pinned version below matches what's available on PyPI as of July 2026 -
+# adjust if it errors on your Python version.
+# mediapipe==0.10.35
+# opencv-python-headless==4.10.0.84
+# numpy==1.26.4
+# scikit-learn==1.5.2

@@ -1,0 +1,48 @@
+{
+  "_comment": "AWS ECS Fargate task definition template (PDF Infrastructure Layer: Cloud Platform AWS/Azure). Replace <ACCOUNT_ID>, <REGION>, and the image URI with your own ECR repository before registering this task definition.",
+  "family": "sign-language-platform-backend",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "512",
+  "memory": "1024",
+  "executionRoleArn": "arn:aws:iam::<ACCOUNT_ID>:role/ecsTaskExecutionRole",
+  "containerDefinitions": [
+    {
+      "name": "backend",
+      "image": "<ACCOUNT_ID>.dkr.ecr.<REGION>.amazonaws.com/sign-language-platform-backend:latest",
+      "portMappings": [
+        {
+          "containerPort": 8000,
+          "protocol": "tcp"
+        }
+      ],
+      "environment": [
+        {
+          "name": "DATABASE_URL",
+          "value": "postgresql://slp_user:CHANGE_ME@<RDS_ENDPOINT>:5432/sign_language_platform"
+        }
+      ],
+      "secrets": [
+        {
+          "name": "SLP_SECRET_KEY",
+          "valueFrom": "arn:aws:secretsmanager:<REGION>:<ACCOUNT_ID>:secret:slp-secret-key"
+        }
+      ],
+      "healthCheck": {
+        "command": ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health')\" || exit 1"],
+        "interval": 30,
+        "timeout": 5,
+        "retries": 3,
+        "startPeriod": 10
+      },
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/sign-language-platform-backend",
+          "awslogs-region": "<REGION>",
+          "awslogs-stream-prefix": "backend"
+        }
+      }
+    }
+  ]
+}

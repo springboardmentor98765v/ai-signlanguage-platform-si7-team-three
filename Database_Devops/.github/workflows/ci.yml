@@ -1,0 +1,67 @@
+name: CI
+
+# Runs on every push and PR: lint -> test -> build Docker image.
+# This is the automated quality gate described in the PDF's
+# Infrastructure Layer (CI/CD via GitHub Actions).
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.12"]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+
+      - name: Lint with ruff
+        run: ruff check app tests
+
+      - name: Run test suite with coverage
+        env:
+          SLP_SECRET_KEY: ci-test-secret
+        run: |
+          pytest tests/ --cov=app --cov-report=term-missing --cov-report=xml -v
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage.xml
+
+  build-docker-image:
+    needs: lint-and-test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build image (no push - validates the Dockerfile builds cleanly)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          tags: sign-language-platform-backend:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
