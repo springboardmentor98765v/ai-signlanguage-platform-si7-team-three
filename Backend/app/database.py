@@ -1,9 +1,8 @@
 from pymongo import MongoClient
 
-MONGO_URI = "mongodb://localhost:27017"
+client = MongoClient("mongodb://localhost:27017")
 
-client = MongoClient(MONGO_URI)
-
-db = client["ai_sign_language"]
+db = client["sign_language_platform"]
 
 users_collection = db["users"]
+courses_collection = db["courses"]

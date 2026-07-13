@@ -2,44 +2,62 @@ import bcrypt
 from jose import jwt
 from datetime import datetime, timedelta
 
+from app.database import users_collection
+
 SECRET_KEY = "mysupersecretkey"
 ALGORITHM = "HS256"
 
-users_db = []
-
 
 def register_user(user):
+    # Check if email already exists
+    existing_user = users_collection.find_one({"email": user.email})
+
+    if existing_user:
+        return {
+            "message": "Email already registered"
+        }
+
+    # Hash password
     hashed_password = bcrypt.hashpw(
         user.password.encode("utf-8"),
         bcrypt.gensalt()
     ).decode("utf-8")
 
-    users_db.append({
+    # Save user to MongoDB
+    users_collection.insert_one({
         "full_name": user.full_name,
         "email": user.email,
         "password": hashed_password
     })
 
-    return {"message": "User registered successfully"}
+    return {
+        "message": "User registered successfully"
+    }
 
 
 def login_user(user):
-    for db_user in users_db:
-        if db_user["email"] == user.email:
-            if bcrypt.checkpw(
-                user.password.encode("utf-8"),
-                db_user["password"].encode("utf-8")
-            ):
-                payload = {
-                    "sub": user.email,
-                    "exp": datetime.utcnow() + timedelta(hours=1)
-                }
+    # Find user in MongoDB
+    db_user = users_collection.find_one({
+        "email": user.email
+    })
 
-                token = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+    if db_user:
+        if bcrypt.checkpw(
+            user.password.encode("utf-8"),
+            db_user["password"].encode("utf-8")
+        ):
 
-                return {
-                    "access_token": token,
-                    "token_type": "bearer"
-                }
+            payload = {
+                "sub": user.email,
+                "exp": datetime.utcnow() + timedelta(hours=1)
+            }
 
-    return {"message": "Invalid credentials"}
+            token = jwt.encode(
+                payload,
+                SECRET_KEY,
+                algorithm=ALGORITHM
+            )
+
+            return token
+
+    return None
