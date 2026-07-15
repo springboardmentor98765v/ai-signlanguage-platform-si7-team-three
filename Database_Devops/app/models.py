@@ -48,6 +48,20 @@ class User(Base):
     assessments = relationship("Assessment", back_populates="learner")
     certificates = relationship("Certificate", back_populates="learner")
     analytics = relationship("LearningAnalytics", back_populates="learner", uselist=False)
+    recommendations = relationship("Recommendation", back_populates="learner")
+    weekly_stats = relationship("WeeklyAnalytics", back_populates="learner")
+
+    # Instructor-Student mapping (Milestone 2): a learner has one instructor
+    # link record; an instructor has many student link records. Two separate
+    # relationships on the same table, disambiguated by foreign_keys.
+    instructor_links = relationship(
+        "InstructorStudent", back_populates="instructor",
+        foreign_keys="InstructorStudent.instructor_id",
+    )
+    student_link = relationship(
+        "InstructorStudent", back_populates="student",
+        foreign_keys="InstructorStudent.student_id", uselist=False,
+    )
 
 
 class Course(Base):
@@ -76,6 +90,12 @@ class Lesson(Base):
     expected_sign = Column(String(50), nullable=False)    # e.g. "A"
     instructions = Column(Text, nullable=True)
     order_index = Column(Integer, default=0)
+
+    # Milestone 2 (FR-2): bigger, searchable, paginated catalogue needs these
+    # to filter/browse by. category distinguishes single-letter signs from
+    # simple common words; difficulty is a simple Easy/Medium split per SRS.
+    category = Column(String(30), default="alphabet")   # alphabet/word
+    difficulty = Column(String(20), default="easy")       # easy/medium
 
     course = relationship("Course", back_populates="lessons")
     practice_sessions = relationship("PracticeSession", back_populates="lesson")
@@ -124,6 +144,11 @@ class Assessment(Base):
 
     passed = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow)
+
+    # Milestone 2 (FR-3): Intern 3's AI service returns a basic hint about
+    # what likely went wrong (e.g. "thumb position looks off"), which
+    # Intern 4's Feedback Engine uses alongside its own rule-based messages.
+    possible_issue = Column(String(255), nullable=True)
 
     session = relationship("PracticeSession", back_populates="assessments")
     learner = relationship("User", back_populates="assessments")
@@ -178,4 +203,70 @@ class Certificate(Base):
     final_score = Column(Float, nullable=False)
     issued_at = Column(DateTime, default=datetime.utcnow)
 
+    # Milestone 2 (FR-4): Intern 4 generates a real PDF (ReportLab/pdf-lib);
+    # this stores where that file lives so it can be downloaded later
+    # instead of just being a database record with no actual document.
+    pdf_path = Column(String(500), nullable=True)
+
     learner = relationship("User", back_populates="certificates")
+
+
+class Recommendation(Base):
+    """
+    Milestone 2 (FR-4) - Recommendation Engine.
+    One row per weak sign the system suggests extra practice for.
+    Created by Intern 4's logic: "below 70% in the last 3 attempts ->
+    recommend extra practice" (SRS Day 4).
+    """
+    __tablename__ = "recommendations"
+
+    id = Column(Integer, primary_key=True, index=True)
+    learner_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    sign = Column(String(50), nullable=False)               # e.g. "M"
+    recommended_sessions = Column(Integer, default=3)
+    reason = Column(String(255), nullable=True)              # e.g. "Below 70% in last 3 attempts"
+    is_active = Column(Boolean, default=True)                # False once the learner improves past threshold
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    learner = relationship("User", back_populates="recommendations")
+
+
+class InstructorStudent(Base):
+    """
+    Milestone 2 (FR-1, FR-2) - Instructor-Student mapping.
+    Links an Instructor (role=instructor) to the Learners they oversee,
+    so the Instructor Dashboard can show "my students" only.
+    One learner has at most one instructor (uselist=False on User.student_link);
+    one instructor can have many students.
+    """
+    __tablename__ = "instructor_students"
+
+    id = Column(Integer, primary_key=True, index=True)
+    instructor_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    student_id = Column(Integer, ForeignKey("users.id"), unique=True, nullable=False)
+    assigned_at = Column(DateTime, default=datetime.utcnow)
+
+    instructor = relationship("User", back_populates="instructor_links", foreign_keys=[instructor_id])
+    student = relationship("User", back_populates="student_link", foreign_keys=[student_id])
+
+
+class WeeklyAnalytics(Base):
+    """
+    Milestone 2 (FR-4, FR-5) - Weekly Analytics.
+    One row per learner per calendar week, so the dashboard can show
+    "how much did I improve this week" instead of only an all-time average
+    (which is what LearningAnalytics already covers).
+    """
+    __tablename__ = "weekly_analytics"
+
+    id = Column(Integer, primary_key=True, index=True)
+    learner_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    week_start_date = Column(DateTime, nullable=False)  # Monday of the week this row summarizes
+
+    sessions_this_week = Column(Integer, default=0)
+    average_accuracy_this_week = Column(Float, default=0.0)
+    improvement_rate = Column(Float, default=0.0)  # vs previous week's average
+    weak_signs_this_week = Column(Text, nullable=True)  # JSON-encoded list
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    learner = relationship("User", back_populates="weekly_stats")

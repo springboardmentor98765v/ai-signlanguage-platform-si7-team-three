@@ -18,6 +18,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# psycopg2-binary is commented out of requirements.txt because it fails to
+# install on some local Windows dev setups (needs pg_config to compile from
+# source). It installs cleanly here though, since Debian/Linux has prebuilt
+# wheels available - and the container needs it to talk to the Postgres
+# service defined in docker-compose.yml.
+RUN pip install --no-cache-dir psycopg2-binary==2.9.9
+
 # Copy application code
 COPY app ./app
 

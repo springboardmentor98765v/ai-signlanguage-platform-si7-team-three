@@ -9,6 +9,19 @@ bcrypt==4.0.1
 python-multipart==0.0.9
 prometheus-fastapi-instrumentator==7.0.0
 
+# NOT INSTALLED BY DEFAULT: only needed when actually connecting to a real
+# PostgreSQL database (e.g. running via docker-compose, which uses Postgres
+# by default - see docker-compose.yml). For local dev/testing without Docker,
+# the app falls back to SQLite (see app/database.py, .env.example) and this
+# package isn't needed at all - pytest and uvicorn work fine without it.
+#
+# On some Windows setups this fails to install because pip tries to compile
+# it from source (needs PostgreSQL's pg_config build tool, which most
+# machines don't have). If you actually need to connect to Postgres locally,
+# install it separately and let us know if it fails - we'll pin a version
+# with a prebuilt wheel for your exact Python version instead.
+# psycopg2-binary==2.9.9
+
 # NOT YET USED by any code that currently runs (app/services/ai_prediction.py
 # is a pure-Python heuristic stub with zero dependencies on these).
 # Uncomment and install once the AI/ML or Computer Vision teammate starts
