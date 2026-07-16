@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { User, Mail, Lock, ArrowRight, AlertCircle } from 'lucide-react'
+import { User, Mail, Lock, ArrowRight, AlertCircle, Eye, EyeOff } from 'lucide-react'
 import AuroraBackground from '../components/AuroraBackground'
 import GlassCard from '../components/GlassCard'
 import HandSkeleton from '../components/HandSkeleton'
@@ -14,6 +14,8 @@ export default function Register() {
   const { register } = useAuth()
   const navigate = useNavigate()
   const [form, setForm] = useState({ name: '', email: '', password: '', confirm: '', role: 'Learner' })
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirm, setShowConfirm] = useState(false)
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
@@ -130,13 +132,21 @@ export default function Register() {
                 <div className="relative">
                   <Lock className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-mist-500" size={18} />
                   <input
-                    type="password"
+                    type={showPassword ? 'text' : 'password'}
                     required
                     value={form.password}
                     onChange={(e) => setForm({ ...form, password: e.target.value })}
                     placeholder="••••••••"
-                    className="glass-input pl-11"
+                    className="glass-input pl-11 pr-11"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((s) => !s)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-mist-500 hover:text-white transition"
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
                 </div>
               </div>
               <div>
@@ -144,13 +154,21 @@ export default function Register() {
                 <div className="relative">
                   <Lock className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-mist-500" size={18} />
                   <input
-                    type="password"
+                    type={showConfirm ? 'text' : 'password'}
                     required
                     value={form.confirm}
                     onChange={(e) => setForm({ ...form, confirm: e.target.value })}
                     placeholder="••••••••"
-                    className="glass-input pl-11"
+                    className="glass-input pl-11 pr-11"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirm((s) => !s)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-mist-500 hover:text-white transition"
+                    aria-label={showConfirm ? 'Hide password' : 'Show password'}
+                  >
+                    {showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
                 </div>
               </div>
             </div>
