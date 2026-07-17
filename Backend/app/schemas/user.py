@@ -16,11 +16,16 @@ class UserLogin(BaseModel):
 class UserUpdate(BaseModel):
     full_name: str
     email:EmailStr
-    
+
 class ForgotPasswordRequest(BaseModel):
     email: EmailStr
 
 
 class ResetPasswordRequest(BaseModel):
     email: EmailStr
-    new_password: str    
+    new_password: str  
+
+class ChangePasswordRequest(BaseModel):
+    email: EmailStr
+    current_password: str
+    new_password: str
