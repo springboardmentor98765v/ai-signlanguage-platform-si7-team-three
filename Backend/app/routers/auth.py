@@ -5,13 +5,15 @@ from app.schemas.user import (
     UserRegister,
     UserLogin,
     UserUpdate,
-    ForgotPasswordRequest
+    ForgotPasswordRequest,
+    ChangePasswordRequest
 )
 from app.services.auth_service import (
     register_user,
     login_user,
     update_profile,
-    forgot_password
+    forgot_password,
+    change_password
 )
 from app.database import get_db
 
@@ -60,4 +62,11 @@ def forgot_password_api(
     request: ForgotPasswordRequest,
     db: Session = Depends(get_db)
 ):
-    return forgot_password(request, db)    
+    return forgot_password(request, db)   
+
+@router.post("/change-password")
+def change_password_api(
+    request: ChangePasswordRequest,
+    db: Session = Depends(get_db)
+):
+    return change_password(request, db)

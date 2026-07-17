@@ -152,3 +152,32 @@ AI Sign Language Platform
             "message": "Failed to send email",
             "error": str(e)
         } 
+def change_password(request, db: Session):
+
+    db_user = db.query(User).filter(User.email == request.email).first()
+
+    if db_user is None:
+        return {
+            "message": "User not found"
+        }
+
+    if not bcrypt.checkpw(
+        request.current_password.encode("utf-8"),
+        db_user.hashed_password.encode("utf-8")
+    ):
+        return {
+            "message": "Current password is incorrect"
+        }
+
+    hashed_password = bcrypt.hashpw(
+        request.new_password.encode("utf-8"),
+        bcrypt.gensalt()
+    ).decode("utf-8")
+
+    db_user.hashed_password = hashed_password
+
+    db.commit()
+
+    return {
+        "message": "Password changed successfully"
+    }        
