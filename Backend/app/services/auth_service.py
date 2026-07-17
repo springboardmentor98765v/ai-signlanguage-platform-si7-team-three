@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from app.models.user import User
 
 SECRET_KEY = os.getenv("SECRET_KEY", "mysupersecretkey")
-ALGORITHM = "HS256"
+ALGORITHM = os.getenv("ALGORITHM", "HS256")
 
 
 def register_user(user, db: Session):
@@ -72,3 +72,28 @@ def login_user(user, db: Session):
         return token
 
     return None
+
+
+def update_profile(user_id: int, user_data, db: Session):
+
+    db_user = db.query(User).filter(User.id == user_id).first()
+
+    if db_user is None:
+        return None
+
+    # Update profile fields
+    db_user.full_name = user_data.full_name
+    db_user.email = user_data.email
+
+    db.commit()
+    db.refresh(db_user)
+
+    return {
+        "message": "Profile updated successfully",
+        "user": {
+            "id": db_user.id,
+            "full_name": db_user.full_name,
+            "email": db_user.email,
+            "role": db_user.role
+        }
+    }
