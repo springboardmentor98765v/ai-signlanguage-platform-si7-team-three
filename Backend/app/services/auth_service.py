@@ -109,12 +109,46 @@ def forgot_password(request, db: Session):
             "message": "User not found"
         }
 
-    # Generate a 6-digit OTP
     otp = str(random.randint(100000, 999999))
 
-    # For now, return the OTP.
-    # In the next step, we'll send it using Gmail SMTP.
-    return {
-        "message": "OTP generated successfully",
-        "otp": otp
-    }    
+    email = EmailMessage()
+    email["Subject"] = "Password Reset OTP"
+    email["From"] = os.getenv("SMTP_EMAIL")
+    email["To"] = request.email
+
+    email.set_content(
+        f"""
+Hello {db_user.full_name},
+
+Your OTP for password reset is:
+
+{otp}
+
+This OTP is valid for a short time.
+
+AI Sign Language Platform
+"""
+    )
+
+    try:
+        with smtplib.SMTP(
+            os.getenv("SMTP_SERVER"),
+            int(os.getenv("SMTP_PORT"))
+        ) as smtp:
+            smtp.starttls()
+            smtp.login(
+                os.getenv("SMTP_EMAIL"),
+                os.getenv("SMTP_PASSWORD")
+            )
+            smtp.send_message(email)
+
+        return {
+            "message": "OTP sent successfully",
+            "otp": otp
+        }
+
+    except Exception as e:
+        return {
+            "message": "Failed to send email",
+            "error": str(e)
+        } 
