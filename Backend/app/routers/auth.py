@@ -1,11 +1,17 @@
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 
-from app.schemas.user import UserRegister, UserLogin, UserUpdate
+from app.schemas.user import (
+    UserRegister,
+    UserLogin,
+    UserUpdate,
+    ForgotPasswordRequest
+)
 from app.services.auth_service import (
     register_user,
     login_user,
-    update_profile
+    update_profile,
+    forgot_password
 )
 from app.database import get_db
 
@@ -48,3 +54,10 @@ def edit_profile(
         )
 
     return updated_user
+    
+@router.post("/forgot-password")
+def forgot_password_api(
+    request: ForgotPasswordRequest,
+    db: Session = Depends(get_db)
+):
+    return forgot_password(request, db)    

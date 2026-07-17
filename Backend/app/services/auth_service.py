@@ -1,3 +1,6 @@
+import random
+import smtplib
+from email.message import EmailMessage
 import os
 import bcrypt
 from jose import jwt
@@ -97,3 +100,21 @@ def update_profile(user_id: int, user_data, db: Session):
             "role": db_user.role
         }
     }
+def forgot_password(request, db: Session):
+
+    db_user = db.query(User).filter(User.email == request.email).first()
+
+    if db_user is None:
+        return {
+            "message": "User not found"
+        }
+
+    # Generate a 6-digit OTP
+    otp = str(random.randint(100000, 999999))
+
+    # For now, return the OTP.
+    # In the next step, we'll send it using Gmail SMTP.
+    return {
+        "message": "OTP generated successfully",
+        "otp": otp
+    }    
