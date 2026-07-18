@@ -1,0 +1,11 @@
+# Prometheus configuration (PDF Infrastructure Layer: "Monitoring & Logging").
+# Scrapes the FastAPI backend's /metrics endpoint every 10 seconds.
+
+global:
+  scrape_interval: 10s
+  evaluation_interval: 10s
+
+scrape_configs:
+  - job_name: "sign_language_platform_backend"
+    static_configs:
+      - targets: ["backend:8000"]  # service name from docker-compose.yml
