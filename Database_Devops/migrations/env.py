@@ -2,6 +2,7 @@ import os
 import sys
 from logging.config import fileConfig
 
+from dotenv import load_dotenv
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 
@@ -9,6 +10,8 @@ from alembic import context
 
 # Make the app package importable when running `alembic` from the project root.
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+load_dotenv()
 
 from app.database import Base  # noqa: E402
 from app import models  # noqa: E402, F401 (registers all tables with Base.metadata)
@@ -20,7 +23,7 @@ config = context.config
 # Use the same DATABASE_URL env var the app itself reads, so migrations
 # always run against whichever DB the app is currently configured for.
 db_url = os.getenv("DATABASE_URL", "sqlite:///./sign_language_platform.db")
-config.set_main_option("sqlalchemy.url", db_url)
+config.set_main_option("sqlalchemy.url", db_url.replace("%", "%%"))
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
