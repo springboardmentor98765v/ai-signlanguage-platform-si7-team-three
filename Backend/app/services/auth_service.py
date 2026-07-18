@@ -45,10 +45,30 @@ def register_user(user, db: Session):
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
+    payload = {
+        "sub": new_user.email,
+        "role": new_user.role,
+        "exp": datetime.utcnow() + timedelta(hours=1)
+    }
+
+    token = jwt.encode(
+        payload,
+        SECRET_KEY,
+        algorithm=ALGORITHM
+    )
 
     return {
-        "message": f"{role} registered successfully"
+        "message": f"{role} registered successfully",
+        "token": token,
+        "user": {
+            "id": new_user.id,
+            "name": new_user.full_name,
+            "email": new_user.email,
+            "role": new_user.role,
+            "profileComplete": True
+        }
     }
+ 
 
 
 def login_user(user, db: Session):
@@ -72,7 +92,16 @@ def login_user(user, db: Session):
             algorithm=ALGORITHM
         )
 
-        return token
+        return {
+            "token": token,
+            "user": {
+            "id": db_user.id,
+            "name": db_user.full_name,
+            "email": db_user.email,
+            "role": db_user.role,
+            "profileComplete": True
+            }
+        }
 
     return None
 

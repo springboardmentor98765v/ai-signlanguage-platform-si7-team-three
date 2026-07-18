@@ -27,18 +27,15 @@ def register(user: UserRegister, db: Session = Depends(get_db)):
 
 @router.post("/login")
 def login(user: UserLogin, db: Session = Depends(get_db)):
-    token = login_user(user, db)
+    response = login_user(user, db)
 
-    if token is None:
+    if response is None:
         raise HTTPException(
             status_code=401,
             detail="Invalid email or password"
         )
 
-    return {
-        "access_token": token,
-        "token_type": "bearer"
-    }
+    return response
 
 
 @router.put("/profile/{user_id}")

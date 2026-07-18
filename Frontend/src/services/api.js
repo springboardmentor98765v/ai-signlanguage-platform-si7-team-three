@@ -6,7 +6,7 @@ import { mockLessons, mockDashboard } from '../data/mockData'
 // the real Auth/Course endpoints are live (Day 6 in the SRS plan).
 // ---------------------------------------------------------------------------
 export const client = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000/api',
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000',
   headers: { 'Content-Type': 'application/json' },
 })
 
@@ -18,7 +18,7 @@ client.interceptors.request.use((config) => {
 
 // Toggle this off once the backend is reachable. While true, every call
 // below resolves against local mock data instead of hitting the network.
-const USE_MOCKS = true
+const USE_MOCKS = false
 
 function delay(ms = 500) {
   return new Promise((resolve) => setTimeout(resolve, ms))
@@ -60,7 +60,8 @@ export const authApi = {
         user: { id: 'u1', name, email, role, dob: null, avatar: null, profileComplete: false },
       }
     }
-    const { data } = await client.post('/auth/register', { name, email, password, role })
+    const { data } = await client.post('/auth/register', { 
+      full_name : name, email, password, role })
     return data
   },
 

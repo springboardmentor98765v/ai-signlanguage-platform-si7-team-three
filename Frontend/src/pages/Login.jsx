@@ -141,6 +141,14 @@ export default function Login() {
               {!submitting && <ArrowRight size={18} />}
             </button>
           </form>
+          <div className="mt-4 text-right">
+            <Link
+              to="/forgot-password"
+              className="text-sm text-signal-teal hover:underline"
+            >
+              Forgot Password?
+            </Link>
+          </div>
 
           <p className="mt-6 text-center text-xs text-mist-500">
             Milestone 1 uses mock authentication — any email and password will work.
