@@ -3,6 +3,26 @@
 **Owner:** Intern 5 (Database & DevOps)
 **Milestone 1 deliverable:** Day 7 — "Fully integrated Milestone 1 environment verified end-to-end; deployment note delivered."
 
+## Update — Milestone 2 Progress (as of today)
+
+**Database:** Migrated from local SQLite to a live Supabase (PostgreSQL)
+cloud database. All 12 tables confirmed live, including Milestone 2
+additions (recommendations, instructor_students, weekly_analytics).
+
+**Backup/Restore:** Tested and working against the live Supabase
+database. See `docs/BACKUP_AND_RESTORE.md` for the script and proof
+of a real backup + restore test.
+
+**Hosting:** Not yet live. Render account created; blocked on org
+admin approval to connect to the team's GitHub org. Pending mentor
+action.
+
+**Team activity:** Other interns now have active branches with real
+work in progress: `Frontend`, `arya-backend`, `arya-postgres-integration`.
+The "known gaps" section below (written during Milestone 1) may be
+partially outdated - check with those teammates directly for their
+current status rather than relying solely on this note.
+
 Per SRS Section 1.4, **cloud production deployment is explicitly out
 of scope for Milestone 1.** This note covers the required scope only:
 running the full stack locally via `docker-compose`, verified
