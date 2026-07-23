@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from app.routers.instructor_student import router as instructor_router
 
 from app.routers.auth import router as auth_router
 from app.routers.course import router as course_router
@@ -11,6 +12,7 @@ from app.database import Base, engine
 
 # Import all models so SQLAlchemy knows about them
 from app.models.user import User
+from app.models.instructor_student import InstructorStudent
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
@@ -35,6 +37,7 @@ app.add_middleware(RateLimitMiddleware)
 
 app.include_router(auth_router)
 app.include_router(course_router)
+app.include_router(instructor_router)
 
 
 @app.get("/")
