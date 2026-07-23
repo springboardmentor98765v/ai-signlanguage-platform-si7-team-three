@@ -29,3 +29,7 @@ class ChangePasswordRequest(BaseModel):
     email: EmailStr
     current_password: str
     new_password: str
+    
+class AssignStudentRequest(BaseModel):
+    instructor_id: int
+    student_id: int    

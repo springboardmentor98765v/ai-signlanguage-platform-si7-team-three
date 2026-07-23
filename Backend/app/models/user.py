@@ -1,5 +1,6 @@
 from datetime import datetime
 from sqlalchemy import Column, Integer, String, Boolean, DateTime
+from sqlalchemy.orm import relationship
 from app.database import Base
 
 
@@ -13,3 +14,17 @@ class User(Base):
     role = Column(String(50), default="Learner")
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
+    # Instructor -> many students
+    instructor_links = relationship(
+        "InstructorStudent",
+        back_populates="instructor",
+        foreign_keys="InstructorStudent.instructor_id",
+    )
+
+    # Student -> one instructor
+    student_link = relationship(
+        "InstructorStudent",
+        back_populates="student",
+        foreign_keys="InstructorStudent.student_id",
+        uselist=False,
+    )
