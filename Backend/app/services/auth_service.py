@@ -3,7 +3,7 @@ import smtplib
 from email.message import EmailMessage
 import os
 import bcrypt
-from jose import jwt
+from app.utils.security import create_access_token
 from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
 
@@ -51,11 +51,7 @@ def register_user(user, db: Session):
         "exp": datetime.utcnow() + timedelta(hours=1)
     }
 
-    token = jwt.encode(
-        payload,
-        SECRET_KEY,
-        algorithm=ALGORITHM
-    )
+    token = create_access_token(payload)
 
     return {
         "message": f"{role} registered successfully",
@@ -86,11 +82,7 @@ def login_user(user, db: Session):
             "exp": datetime.utcnow() + timedelta(hours=1)
         }
 
-        token = jwt.encode(
-            payload,
-            SECRET_KEY,
-            algorithm=ALGORITHM
-        )
+        token = create_access_token(payload)
 
         return {
             "token": token,
@@ -148,7 +140,6 @@ def forgot_password(request, db: Session):
     email.set_content(
         f"""
 Hello {db_user.full_name},
-
 Your OTP for password reset is:
 
 {otp}
