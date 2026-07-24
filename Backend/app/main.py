@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routers.instructor_student import router as instructor_router
+from app.routers.admin import router as admin_router
 
 from app.routers.auth import router as auth_router
 from app.routers.course import router as course_router
@@ -38,6 +39,7 @@ app.add_middleware(RateLimitMiddleware)
 app.include_router(auth_router)
 app.include_router(course_router)
 app.include_router(instructor_router)
+app.include_router(admin_router)
 
 
 @app.get("/")
