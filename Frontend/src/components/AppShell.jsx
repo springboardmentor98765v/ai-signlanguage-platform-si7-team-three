@@ -1,22 +1,52 @@
 import { NavLink, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, BookOpen, Video, Award, Settings as SettingsIcon, LogOut, Menu, X } from 'lucide-react'
+import {
+  LayoutDashboard,
+  BookOpen,
+  Video,
+  Award,
+  Settings as SettingsIcon,
+  LogOut,
+  Menu,
+  X,
+  User,
+  GraduationCap,
+  ShieldCheck,
+} from 'lucide-react'
 import { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import HandSkeleton from './HandSkeleton'
 import AuroraBackground from './AuroraBackground'
 
-const NAV_ITEMS = [
-  { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { to: '/lessons', label: 'Lessons', icon: BookOpen },
-  { to: '/practice', label: 'Practice', icon: Video },
-  { to: '/reports', label: 'Reports', icon: Award },
-  { to: '/settings', label: 'Settings', icon: SettingsIcon },
-]
+// Nav items are role-aware: Learners see the practice-focused items,
+// Instructors/Trainers land on their analytics dashboard, Admins get the
+// platform-management dashboard. Profile and Settings are shared by everyone.
+function getNavItems(role) {
+  const shared = [
+    { to: '/profile', label: 'Profile', icon: User },
+    { to: '/settings', label: 'Settings', icon: SettingsIcon },
+  ]
+
+  if (role === 'Admin') {
+    return [{ to: '/admin-dashboard', label: 'Admin Dashboard', icon: ShieldCheck }, ...shared]
+  }
+  if (role === 'Instructor' || role === 'Trainer') {
+    return [{ to: '/instructor-dashboard', label: 'Instructor Dashboard', icon: GraduationCap }, ...shared]
+  }
+  return [
+    { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { to: '/lessons', label: 'Lessons', icon: BookOpen },
+    { to: '/practice', label: 'Practice', icon: Video },
+    { to: '/reports', label: 'Reports', icon: Award },
+    { to: '/certificate', label: 'Certificate', icon: GraduationCap },
+    ...shared,
+  ]
+}
 
 export default function AppShell({ children, title, subtitle }) {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const navItems = getNavItems(user?.role)
 
   function handleLogout() {
     logout()
@@ -45,9 +75,8 @@ export default function AppShell({ children, title, subtitle }) {
       <div className="mx-auto flex max-w-[1400px] gap-6 px-4 pb-10 md:px-8">
         {/* Sidebar */}
         <aside
-          className={`glass-strong fixed left-4 top-4 z-40 w-64 flex-col rounded-3xl p-6 transition-transform
-            ${mobileOpen ? 'flex translate-x-0' : 'hidden -translate-x-[120%] md:flex'}
-            md:translate-x-0 md:h-[calc(100vh-2rem)] md:overflow-y-auto`}
+          className={`glass-strong fixed inset-y-4 left-4 z-40 w-64 flex-col rounded-3xl p-6 transition-transform md:sticky md:top-4 md:flex md:h-[calc(100vh-2rem)] md:translate-x-0
+            ${mobileOpen ? 'flex translate-x-0' : 'hidden -translate-x-[120%] md:flex'}`}
         >
           <div className="mb-10 flex items-center gap-3">
             <HandSkeleton className="h-9 w-9 text-signal-teal" />
@@ -58,7 +87,7 @@ export default function AppShell({ children, title, subtitle }) {
           </div>
 
           <nav className="flex flex-1 flex-col gap-1.5">
-            {NAV_ITEMS.map(({ to, label, icon: Icon }) => (
+            {navItems.map(({ to, label, icon: Icon }) => (
               <NavLink
                 key={to}
                 to={to}
@@ -107,9 +136,7 @@ export default function AppShell({ children, title, subtitle }) {
         </aside>
 
         {/* Main content */}
-        <main className="min-w-0 flex-1 pt-4 pl-0 md:pl-0 md:pt-10 md:ml-72">
-
-
+        <main className="min-w-0 flex-1 pt-4 md:pt-10">
           {(title || subtitle) && (
             <header className="mb-8">
               {title && <h1 className="font-display text-3xl font-bold md:text-4xl">{title}</h1>}
