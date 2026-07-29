@@ -61,11 +61,10 @@ def on_startup():
     logger.info("Database initialized. Sign Language Platform API is starting up.")
 
 
-@app.get("/health", tags=["System"])
+@app.api_route("/health", methods=["GET", "HEAD"], tags=["System"])
 def health_check():
     """Used by Docker/Kubernetes/monitoring to verify the service is alive."""
     return {"status": "ok"}
-
 
 # PDF Infrastructure Layer: "Monitoring & Logging (Prometheus / Grafana)".
 # Exposes request counts, latencies, and status codes at GET /metrics in
