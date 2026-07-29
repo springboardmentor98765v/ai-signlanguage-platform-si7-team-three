@@ -32,7 +32,6 @@ services:
     environment:
       - DATABASE_URL=postgresql://slp_user:${POSTGRES_PASSWORD:-slp_password}@db:5432/sign_language_platform
       - SLP_SECRET_KEY=${SLP_SECRET_KEY:-dev-secret-change-me-in-production}
-      # Milestone 2 additions - see .env.example for what each one does
       - SMTP_ENABLED=${SMTP_ENABLED:-false}
       - SMTP_HOST=${SMTP_HOST:-smtp.gmail.com}
       - SMTP_PORT=${SMTP_PORT:-587}
@@ -41,8 +40,9 @@ services:
       - SMTP_FROM_EMAIL=${SMTP_FROM_EMAIL:-}
       - FRONTEND_URL=${FRONTEND_URL:-http://localhost:3000}
       - CERTIFICATE_STORAGE_PATH=${CERTIFICATE_STORAGE_PATH:-/app/certificates}
+
     volumes:
-      - slp_certificates:/app/certificates
+      - slp_certificates:/app/certificates 
     depends_on:
       db:
         condition: service_healthy
@@ -97,5 +97,4 @@ volumes:
   slp_postgres_data:
   slp_prometheus_data:
   slp_grafana_data:
-  slp_certificates:
-  
+slp_certificates:
