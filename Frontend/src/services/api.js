@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { mockLessons, mockDashboard } from '../data/mockData'
+import { mockLessons, mockDashboard, mockStudents, mockAdminUsers, mockAdminStats } from '../data/mockData'
 
 // ---------------------------------------------------------------------------
 // Base axios client. Point VITE_API_URL at Intern 2's FastAPI gateway once
@@ -32,6 +32,11 @@ export const authApi = {
     if (USE_MOCKS) {
       await delay()
       if (!email || !password) throw new Error('Email and password are required.')
+      // Demo-only convenience: log in as admin@..., instructor@..., or
+      // trainer@... to reach that role's dashboard without registering.
+      // A real backend would return the role from the user's DB record.
+      const prefix = email.split('@')[0].toLowerCase()
+      const role = ['admin', 'instructor', 'trainer'].find((r) => prefix.includes(r))
       return {
         token: 'mock-jwt-token',
         // Existing accounts are assumed to already have a complete profile.
@@ -39,7 +44,7 @@ export const authApi = {
           id: 'u1',
           name: email.split('@')[0],
           email,
-          role: 'Learner',
+          role: role ? role[0].toUpperCase() + role.slice(1) : 'Learner',
           dob: '2000-01-01',
           avatar: null,
           profileComplete: true,
@@ -117,6 +122,73 @@ export const userApi = {
       return { ...current, ...updates }
     }
     const { data } = await client.patch('/users/me', updates)
+    return data
+  },
+
+  async changePassword(_currentPassword, _newPassword) {
+    if (USE_MOCKS) {
+      await delay(500)
+      return { success: true }
+    }
+    const { data } = await client.post('/users/me/password', {
+      currentPassword: _currentPassword,
+      newPassword: _newPassword,
+    })
+    return data
+  },
+}
+
+// ---------------------------------------------------------------------------
+// Instructor Dashboard — student roster, per-student analytics.
+// ---------------------------------------------------------------------------
+export const instructorApi = {
+  async getStudents() {
+    if (USE_MOCKS) {
+      await delay(500)
+      return mockStudents
+    }
+    const { data } = await client.get('/instructor/students')
+    return data
+  },
+}
+
+// ---------------------------------------------------------------------------
+// Admin Dashboard — platform-wide stats and user management.
+// ---------------------------------------------------------------------------
+export const adminApi = {
+  async getStats() {
+    if (USE_MOCKS) {
+      await delay(500)
+      return mockAdminStats
+    }
+    const { data } = await client.get('/admin/stats')
+    return data
+  },
+
+  async getUsers() {
+    if (USE_MOCKS) {
+      await delay(500)
+      return mockAdminUsers
+    }
+    const { data } = await client.get('/admin/users')
+    return data
+  },
+
+  async setUserStatus(userId, status) {
+    if (USE_MOCKS) {
+      await delay(300)
+      return { userId, status }
+    }
+    const { data } = await client.patch(`/admin/users/${userId}`, { status })
+    return data
+  },
+
+  async setUserRole(userId, role) {
+    if (USE_MOCKS) {
+      await delay(300)
+      return { userId, role }
+    }
+    const { data } = await client.patch(`/admin/users/${userId}`, { role })
     return data
   },
 }

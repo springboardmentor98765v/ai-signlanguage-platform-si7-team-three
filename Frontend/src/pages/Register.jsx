@@ -1,21 +1,24 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { User, Mail, Lock, ArrowRight, AlertCircle, Eye, EyeOff } from 'lucide-react'
+import { User, Mail, Lock, ArrowRight, AlertCircle } from 'lucide-react'
 import AuroraBackground from '../components/AuroraBackground'
 import GlassCard from '../components/GlassCard'
 import HandSkeleton from '../components/HandSkeleton'
-
+import OAuthButtons from '../components/OAuthButtons'
 import { useAuth } from '../context/AuthContext'
+import { useToast } from '../context/ToastContext'
 
-const ROLES = ['Learner', 'Instructor', 'Trainer']
+// NOTE: In production, Admin accounts should never be self-service —
+// they'd be provisioned by an existing Admin. Included here as a selectable
+// role purely so the Admin Dashboard is reachable for demo/testing.
+const ROLES = ['Learner', 'Instructor', 'Trainer', 'Admin']
 
 export default function Register() {
   const { register } = useAuth()
+  const { toast } = useToast()
   const navigate = useNavigate()
   const [form, setForm] = useState({ name: '', email: '', password: '', confirm: '', role: 'Learner' })
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirm, setShowConfirm] = useState(false)
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
@@ -35,7 +38,8 @@ export default function Register() {
     setSubmitting(true)
     try {
       await register(form)
-      navigate('/dashboard')
+      toast('Account created — welcome to SignalPath!', 'success')
+      navigate('/')
     } catch (err) {
       setError(err.message || 'Could not create your account. Try again.')
     } finally {
@@ -88,7 +92,10 @@ export default function Register() {
             </Link>
           </p>
 
-         
+          <OAuthButtons
+            onSuccess={() => navigate('/')}
+            onError={setError}
+          />
 
           <div className="my-6 flex items-center gap-3">
             <div className="h-px flex-1 bg-white/10" />
@@ -132,21 +139,13 @@ export default function Register() {
                 <div className="relative">
                   <Lock className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-mist-500" size={18} />
                   <input
-                    type={showPassword ? 'text' : 'password'}
+                    type="password"
                     required
                     value={form.password}
                     onChange={(e) => setForm({ ...form, password: e.target.value })}
                     placeholder="••••••••"
-                    className="glass-input pl-11 pr-11"
+                    className="glass-input pl-11"
                   />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword((s) => !s)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-mist-500 hover:text-white transition"
-                    aria-label={showPassword ? 'Hide password' : 'Show password'}
-                  >
-                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                  </button>
                 </div>
               </div>
               <div>
@@ -154,28 +153,20 @@ export default function Register() {
                 <div className="relative">
                   <Lock className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-mist-500" size={18} />
                   <input
-                    type={showConfirm ? 'text' : 'password'}
+                    type="password"
                     required
                     value={form.confirm}
                     onChange={(e) => setForm({ ...form, confirm: e.target.value })}
                     placeholder="••••••••"
-                    className="glass-input pl-11 pr-11"
+                    className="glass-input pl-11"
                   />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirm((s) => !s)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-mist-500 hover:text-white transition"
-                    aria-label={showConfirm ? 'Hide password' : 'Show password'}
-                  >
-                    {showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
-                  </button>
                 </div>
               </div>
             </div>
 
             <div>
               <label className="mb-2 block text-xs font-medium text-mist-500">I am a…</label>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                 {ROLES.map((role) => (
                   <button
                     type="button"
