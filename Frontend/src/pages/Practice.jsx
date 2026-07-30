@@ -6,6 +6,7 @@ import AppShell from '../components/AppShell'
 import GlassCard from '../components/GlassCard'
 import { practiceApi } from '../services/api'
 import { mockLessons } from '../data/mockData'
+import { useToast } from '../context/ToastContext'
 
 export default function Practice() {
   const [searchParams] = useSearchParams()
@@ -22,6 +23,7 @@ export default function Practice() {
   const [result, setResult] = useState(null)
 
   const targetLetter = lesson.letters[letterIndex]
+  const { toast } = useToast()
 
   useEffect(() => {
     practiceApi.startSession(lesson.id).then((s) => setSessionId(s.sessionId))
@@ -57,6 +59,8 @@ export default function Practice() {
     const res = await practiceApi.submitAttempt(sessionId, targetLetter, null)
     setResult(res)
     setScanning(false)
+    if (res.accuracy >= 90) toast(`${res.accuracy}% accuracy — great form!`, 'success')
+    else if (res.accuracy < 55) toast('Keep practicing — check the feedback below.', 'info')
   }
 
   function nextLetter() {

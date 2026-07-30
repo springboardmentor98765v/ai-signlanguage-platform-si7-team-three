@@ -1,18 +1,19 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Eye, EyeOff, Mail, Lock, ArrowRight, AlertCircle } from 'lucide-react'
+import { Mail, Lock, ArrowRight, AlertCircle } from 'lucide-react'
 import AuroraBackground from '../components/AuroraBackground'
 import GlassCard from '../components/GlassCard'
 import HandSkeleton from '../components/HandSkeleton'
-
+import OAuthButtons from '../components/OAuthButtons'
 import { useAuth } from '../context/AuthContext'
+import { useToast } from '../context/ToastContext'
 
 export default function Login() {
   const { login } = useAuth()
+  const { toast } = useToast()
   const navigate = useNavigate()
   const [form, setForm] = useState({ email: '', password: '' })
-  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
@@ -22,7 +23,8 @@ export default function Login() {
     setSubmitting(true)
     try {
       await login(form.email, form.password)
-      navigate('/dashboard')
+      toast('Welcome back!', 'success')
+      navigate('/')
     } catch (err) {
       setError(err.message || 'Could not log in. Check your details and try again.')
     } finally {
@@ -82,7 +84,10 @@ export default function Login() {
             </Link>
           </p>
 
-         
+          <OAuthButtons
+            onSuccess={() => navigate('/')}
+            onError={setError}
+          />
 
           <div className="my-6 flex items-center gap-3">
             <div className="h-px flex-1 bg-white/10" />
@@ -111,21 +116,13 @@ export default function Login() {
               <div className="relative">
                 <Lock className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-mist-500" size={18} />
                 <input
-                  type={showPassword ? 'text' : 'password'}
+                  type="password"
                   required
                   value={form.password}
                   onChange={(e) => setForm({ ...form, password: e.target.value })}
                   placeholder="••••••••"
-                  className="glass-input pl-11 pr-11"
+                  className="glass-input pl-11"
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword((s) => !s)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-mist-500 hover:text-white transition"
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
-                >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
               </div>
             </div>
 
