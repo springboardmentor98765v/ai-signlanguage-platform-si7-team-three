@@ -81,7 +81,7 @@ export default function AppShell({ children, title, subtitle }) {
           <div className="mb-10 flex items-center gap-3">
             <HandSkeleton className="h-9 w-9 text-signal-teal" />
             <div>
-              <p className="font-display text-lg font-bold leading-tight">SignalPath</p>
+              <p className="font-display text-lg font-bold leading-tight">Sign Learn</p>
               <p className="text-xs text-mist-500">Sign Language Lab</p>
             </div>
           </div>
