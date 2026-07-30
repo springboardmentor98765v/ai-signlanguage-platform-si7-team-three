@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 from app.schemas.course import Course
 from app.services.course_service import (
     get_all_courses,
@@ -6,15 +6,22 @@ from app.services.course_service import (
     create_course,
     update_course,
     delete_course,
+    search_lessons,
 )
 
 router = APIRouter(prefix="/courses", tags=["Courses"])
 
 
 @router.get("/")
-def read_courses():
-    return get_all_courses()
+def read_courses(
+    page: int = Query(1, ge=1),
+    limit: int = Query(10, ge=1)
+):
+    return get_all_courses(page, limit)
 
+@router.get("/search/")
+def search_course_lessons(keyword: str):
+    return search_lessons(keyword)
 
 @router.get("/{course_id}")
 def read_course(course_id: int):
