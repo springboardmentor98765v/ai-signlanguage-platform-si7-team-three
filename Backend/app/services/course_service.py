@@ -110,3 +110,40 @@ def search_lessons(keyword: str):
                     result.append(lesson)
 
     return result
+
+def create_lesson(course_id: int, module_id: int, lesson: Lesson):
+    for course in courses:
+        if course.id == course_id:
+            for module in course.modules:
+                if module.id == module_id:
+                    module.lessons.append(lesson)
+                    return lesson
+    return None
+
+def update_lesson(course_id: int, module_id: int, lesson_id: int, updated_lesson):
+    course = get_course(course_id)
+    if not course:
+        return None
+
+    for module in course.modules:
+        if module.id == module_id:
+            for i, lesson in enumerate(module.lessons):
+                if lesson.id == lesson_id:
+                    module.lessons[i] = updated_lesson
+                    return updated_lesson
+
+    return None   
+
+def delete_lesson(course_id: int, module_id: int, lesson_id: int):
+    course = get_course(course_id)
+
+    if not course:
+        return None
+
+    for module in course.modules:
+        if module.id == module_id:
+            for i, lesson in enumerate(module.lessons):
+                if lesson.id == lesson_id:
+                    return module.lessons.pop(i)
+
+    return None    
