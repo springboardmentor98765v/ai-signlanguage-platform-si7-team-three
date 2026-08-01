@@ -47,7 +47,7 @@ export default function Onboarding() {
     setSubmitting(true)
     try {
       await updateProfile({ name: name.trim(), dob, avatar, avatarColor, profileComplete: true })
-      navigate('/dashboard')
+      navigate('/')
     } catch (err) {
       setError(err.message || 'Could not save your details. Try again.')
     } finally {

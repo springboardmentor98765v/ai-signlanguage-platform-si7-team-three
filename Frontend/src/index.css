@@ -104,6 +104,7 @@
 }
 
 @layer components {
+  /* Core glass surface — the signature material of the whole UI */
   .glass {
     @apply bg-white/[0.06] backdrop-blur-xl border border-white/[0.14] shadow-glass;
   }
@@ -111,7 +112,7 @@
     @apply bg-white/[0.1] backdrop-blur-2xl border border-white/[0.18] shadow-glass;
   }
   .glass-card {
-    @apply glass rounded-3xl;
+    @apply bg-white/[0.06] backdrop-blur-xl border border-white/[0.14] shadow-glass rounded-3xl;
   }
   .glass-input {
     @apply w-full bg-white/[0.05] border border-white/[0.14] rounded-xl px-4 py-3
@@ -126,7 +127,8 @@
   }
   .btn-ghost {
     @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3
-      glass text-mist-100 font-medium transition hover:bg-white/[0.1] active:scale-[0.98];
+      bg-white/[0.06] backdrop-blur-xl border border-white/[0.14] shadow-glass
+      text-mist-100 font-medium transition hover:bg-white/[0.1] active:scale-[0.98];
   }
   .label-eyebrow {
     @apply text-xs uppercase tracking-[0.2em] text-signal-teal font-semibold;

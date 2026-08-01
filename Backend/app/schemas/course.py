@@ -5,6 +5,8 @@ class Lesson(BaseModel):
     id: int
     title: str
     description: str
+    category: str
+    difficulty: str
 
 
 class Module(BaseModel):
