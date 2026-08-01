@@ -97,4 +97,4 @@ volumes:
   slp_postgres_data:
   slp_prometheus_data:
   slp_grafana_data:
-slp_certificates:
+  slp_certificates:
