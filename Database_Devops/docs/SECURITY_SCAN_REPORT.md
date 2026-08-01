@@ -48,3 +48,11 @@ fixing since there's no actual content or vulnerability behind it.
 See `zap_report.html` (generated alongside this document) for the
 complete, detailed ZAP report with full technical descriptions of
 every check performed.
+
+## Day 8 follow-up
+
+No critical or serious issues were found in the Day 7 scan, so there
+was nothing requiring a fix. Re-running the same scan would be
+expected to produce the same clean result unless the codebase changes
+- this will be re-verified before Milestone 4's actual deployment
+(see `docs/DEPLOYMENT_READINESS_CHECKLIST.md`, Section 5).
