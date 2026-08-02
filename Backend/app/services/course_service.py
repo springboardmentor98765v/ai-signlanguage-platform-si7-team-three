@@ -56,20 +56,14 @@ courses = [
 
 
 def get_all_courses(page: int = 1, limit: int = 10):
-    all_lessons = []
-
-    for course in courses:
-        for module in course.modules:
-            all_lessons.extend(module.lessons)
-
     start = (page - 1) * limit
     end = start + limit
 
     return {
         "page": page,
         "limit": limit,
-        "total_lessons": len(all_lessons),
-        "lessons": all_lessons[start:end]
+        "total_courses": len(courses),
+        "courses": courses[start:end]
     }
 
 
