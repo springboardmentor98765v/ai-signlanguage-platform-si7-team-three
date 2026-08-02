@@ -50,6 +50,9 @@ class User(Base):
     analytics = relationship("LearningAnalytics", back_populates="learner", uselist=False)
     recommendations = relationship("Recommendation", back_populates="learner")
     weekly_stats = relationship("WeeklyAnalytics", back_populates="learner")
+    notifications = relationship("Notification", back_populates="user")
+    badges = relationship("Badge", back_populates="learner")
+    streak = relationship("Streak", back_populates="learner", uselist=False)
 
     # Instructor-Student mapping (Milestone 2): a learner has one instructor
     # link record; an instructor has many student link records. Two separate
@@ -94,7 +97,7 @@ class Lesson(Base):
     # Milestone 2 (FR-2): bigger, searchable, paginated catalogue needs these
     # to filter/browse by. category distinguishes single-letter signs from
     # simple common words; difficulty is a simple Easy/Medium split per SRS.
-    category = Column(String(30), default="alphabet")   # alphabet/word
+    category = Column(String(30), default="alphabet", index=True)   # alphabet/word
     difficulty = Column(String(20), default="easy")       # easy/medium
 
     course = relationship("Course", back_populates="lessons")
@@ -184,7 +187,7 @@ class LearningAnalytics(Base):
     total_sessions = Column(Integer, default=0)
     total_practice_minutes = Column(Float, default=0.0)
     lessons_completed = Column(Integer, default=0)
-    average_accuracy = Column(Float, default=0.0)
+    average_accuracy = Column(Float, default=0.0, index=True)  # Milestone 3: leaderboard sorts by this
     improvement_rate = Column(Float, default=0.0)
     weak_signs = Column(Text, nullable=True)  # JSON-encoded list, e.g. ["M","N","R"]
     last_updated = Column(DateTime, default=datetime.utcnow)
@@ -263,6 +266,7 @@ class WeeklyAnalytics(Base):
     learner_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     week_start_date = Column(DateTime, nullable=False)  # Monday of the week this row summarizes
 
+
     sessions_this_week = Column(Integer, default=0)
     average_accuracy_this_week = Column(Float, default=0.0)
     improvement_rate = Column(Float, default=0.0)  # vs previous week's average
@@ -270,3 +274,60 @@ class WeeklyAnalytics(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
     learner = relationship("User", back_populates="weekly_stats")
+
+class Notification(Base):
+    """
+    Milestone 3 (FR-2, FR-4) - In-app Notifications.
+    Created by Intern 4's logic when a key event happens (badge earned,
+    certificate ready, new recommendation), served to the Frontend's
+    Notification Bell by Intern 2's API.
+    """
+    __tablename__ = "notifications"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    event_type = Column(String(50), nullable=False)  # e.g. "badge_earned", "certificate_ready", "new_recommendation"
+    message = Column(String(255), nullable=False)     # e.g. "You earned the Alphabet Master badge!"
+    is_read = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User", back_populates="notifications")
+
+
+class Badge(Base):
+    """
+    Milestone 3 (FR-4) - Badges.
+    One row per badge a learner has actually earned (not a catalog of
+    all possible badges - just the ones unlocked). "Locked" badges are
+    a Frontend-only concept: any badge_type not present here for a
+    learner is shown as locked/greyed out.
+    """
+    __tablename__ = "badges"
+
+    id = Column(Integer, primary_key=True, index=True)
+    learner_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    badge_type = Column(String(50), nullable=False)   # e.g. "alphabet_master", "7_day_streak"
+    title = Column(String(100), nullable=False)        # e.g. "Alphabet Master"
+    description = Column(String(255), nullable=True)   # e.g. "Finished all letters above 80% accuracy"
+    earned_at = Column(DateTime, default=datetime.utcnow)
+
+    learner = relationship("User", back_populates="badges")
+
+
+class Streak(Base):
+    """
+    Milestone 3 (FR-4) - Practice Streaks.
+    One row per learner (not one row per day) - tracks their current
+    and longest consecutive-day practice streak. Updated whenever a
+    new practice session is completed.
+    """
+    __tablename__ = "streaks"
+
+    id = Column(Integer, primary_key=True, index=True)
+    learner_id = Column(Integer, ForeignKey("users.id"), unique=True, nullable=False)
+    current_streak = Column(Integer, default=0, index=True)  # Milestone 3: leaderboard sorts by this
+    longest_streak = Column(Integer, default=0)         # all-time best, never decreases
+    last_practice_date = Column(DateTime, nullable=True)
+    updated_at = Column(DateTime, default=datetime.utcnow)
+
+    learner = relationship("User", back_populates="streak")
