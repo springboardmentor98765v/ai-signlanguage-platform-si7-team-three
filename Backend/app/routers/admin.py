@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from app.schemas.user import BulkStatusUpdateRequest
 from app.database import get_db
 from app.models.user import User
 from app.dependencies import require_admin
@@ -43,6 +44,33 @@ def update_user_status(
         "message": "User status updated successfully",
         "user": user
     }
+
+@router.put("/users/bulk-status")
+def bulk_update_user_status(
+    request: BulkStatusUpdateRequest,
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_db)
+):
+    users = (
+        db.query(User)
+        .filter(User.id.in_(request.user_ids))
+        .all()
+    )
+
+    if not users:
+        raise HTTPException(
+            status_code=404,
+            detail="No users found"
+        )
+
+    for user in users:
+        user.is_active = request.is_active
+
+    db.commit()
+
+    return {
+        "message": f"{len(users)} users updated successfully"
+    }   
 
 
 @router.put("/users/{user_id}/role")

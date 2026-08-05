@@ -33,3 +33,7 @@ class ChangePasswordRequest(BaseModel):
 class AssignStudentRequest(BaseModel):
     instructor_id: int
     student_id: int    
+
+class BulkStatusUpdateRequest(BaseModel):
+    user_ids: list[int]
+    is_active: bool    
