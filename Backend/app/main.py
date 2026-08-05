@@ -5,6 +5,7 @@ from app.routers.admin import router as admin_router
 
 from app.routers.auth import router as auth_router
 from app.routers.course import router as course_router
+from app.routers.notification import router as notification_router
 
 from app.middleware.logger import LoggingMiddleware
 from app.middleware.rate_limit import RateLimitMiddleware
@@ -14,6 +15,7 @@ from app.database import Base, engine
 # Import all models so SQLAlchemy knows about them
 from app.models.user import User
 from app.models.instructor_student import InstructorStudent
+from app.models.notification import Notification
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
@@ -40,6 +42,7 @@ app.include_router(auth_router)
 app.include_router(course_router)
 app.include_router(instructor_router)
 app.include_router(admin_router)
+app.include_router(notification_router)
 
 
 @app.get("/")
