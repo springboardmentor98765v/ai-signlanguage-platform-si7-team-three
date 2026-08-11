@@ -11,11 +11,13 @@ import {
   User,
   GraduationCap,
   ShieldCheck,
+  Trophy,
 } from 'lucide-react'
 import { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import HandSkeleton from './HandSkeleton'
 import AuroraBackground from './AuroraBackground'
+import NotificationBell from './NotificationBell'
 
 // Nav items are role-aware: Learners see the practice-focused items,
 // Instructors/Trainers land on their analytics dashboard, Admins get the
@@ -36,6 +38,7 @@ function getNavItems(role) {
     { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { to: '/lessons', label: 'Lessons', icon: BookOpen },
     { to: '/practice', label: 'Practice', icon: Video },
+    { to: '/leaderboard', label: 'Leaderboard', icon: Trophy },
     { to: '/reports', label: 'Reports', icon: Award },
     { to: '/certificate', label: 'Certificate', icon: GraduationCap },
     ...shared,
@@ -63,13 +66,16 @@ export default function AppShell({ children, title, subtitle }) {
           <HandSkeleton className="h-8 w-8 text-signal-teal" animated={false} />
           <span className="font-display font-semibold">SignalPath</span>
         </div>
-        <button
-          onClick={() => setMobileOpen((v) => !v)}
-          className="glass rounded-lg p-2"
-          aria-label="Toggle menu"
-        >
-          {mobileOpen ? <X size={20} /> : <Menu size={20} />}
-        </button>
+        <div className="flex items-center gap-2">
+          <NotificationBell />
+          <button
+            onClick={() => setMobileOpen((v) => !v)}
+            className="glass rounded-lg p-2"
+            aria-label="Toggle menu"
+          >
+            {mobileOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
+        </div>
       </div>
 
       <div className="mx-auto flex max-w-[1400px] gap-6 px-4 pb-10 md:px-8">
@@ -137,6 +143,9 @@ export default function AppShell({ children, title, subtitle }) {
 
         {/* Main content */}
         <main className="min-w-0 flex-1 pt-4 md:pt-10">
+          <div className="mb-4 hidden justify-end md:flex">
+            <NotificationBell />
+          </div>
           {(title || subtitle) && (
             <header className="mb-8">
               {title && <h1 className="font-display text-3xl font-bold md:text-4xl">{title}</h1>}

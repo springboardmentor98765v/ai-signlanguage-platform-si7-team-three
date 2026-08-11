@@ -11,6 +11,7 @@ import Profile from './pages/Profile'
 import InstructorDashboard from './pages/InstructorDashboard'
 import AdminDashboard from './pages/AdminDashboard'
 import Certificate from './pages/Certificate'
+import Leaderboard from './pages/Leaderboard'
 import ProtectedRoute from './components/ProtectedRoute'
 import { useAuth } from './context/AuthContext'
 
@@ -69,6 +70,14 @@ export default function App() {
         element={
           <ProtectedRoute>
             <Practice />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/leaderboard"
+        element={
+          <ProtectedRoute>
+            <Leaderboard />
           </ProtectedRoute>
         }
       />
