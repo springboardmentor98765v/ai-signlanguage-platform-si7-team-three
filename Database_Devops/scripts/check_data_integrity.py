@@ -101,6 +101,19 @@ check(
        LEFT JOIN users u2 ON ins.student_id = u2.id
        WHERE u1.id IS NULL OR u2.id IS NULL""",
 )
+check(
+    "Certification exams with no matching learner",
+    """SELECT ce.id FROM certification_exams ce
+       LEFT JOIN users u ON ce.learner_id = u.id
+       WHERE u.id IS NULL""",
+)
+check(
+    "Trainer-Learner links with no matching users",
+    """SELECT tl.id FROM trainer_learners tl
+       LEFT JOIN users u1 ON tl.trainer_id = u1.id
+       LEFT JOIN users u2 ON tl.learner_id = u2.id
+       WHERE u1.id IS NULL OR u2.id IS NULL""",
+)
 
 print(f"\n{'='*50}")
 if issues_found == 0:

@@ -53,6 +53,9 @@ class User(Base):
     notifications = relationship("Notification", back_populates="user")
     badges = relationship("Badge", back_populates="learner")
     streak = relationship("Streak", back_populates="learner", uselist=False)
+    certification_exams = relationship("CertificationExam", back_populates="learner")
+    trainer_link = relationship("TrainerLearner", back_populates="learner", foreign_keys="TrainerLearner.learner_id", uselist=False)
+    trainer_learners = relationship("TrainerLearner", back_populates="trainer", foreign_keys="TrainerLearner.trainer_id")
 
     # Instructor-Student mapping (Milestone 2): a learner has one instructor
     # link record; an instructor has many student link records. Two separate
@@ -331,3 +334,42 @@ class Streak(Base):
     updated_at = Column(DateTime, default=datetime.utcnow)
 
     learner = relationship("User", back_populates="streak")
+
+class CertificationExam(Base):
+    """
+    Milestone 4 (FR-4) - Formal Certification Exam.
+    Distinct from regular PracticeSession/Assessment: a structured exam
+    covering multiple signs at once, scored against a level-specific
+    pass/fail threshold (Beginner/Intermediate/Advanced/Professional),
+    per the original project document's Assessment & Certification Module.
+    """
+    __tablename__ = "certification_exams"
+
+    id = Column(Integer, primary_key=True, index=True)
+    learner_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    level = Column(String(30), nullable=False)  # beginner/intermediate/advanced/professional
+    signs_tested = Column(Text, nullable=False)  # JSON-encoded list, e.g. ["A","B","C",...]
+    overall_score = Column(Float, nullable=False)
+    passed = Column(Boolean, default=False)
+    certificate_id = Column(Integer, ForeignKey("certificates.id"), nullable=True)  # set if passed
+    taken_at = Column(DateTime, default=datetime.utcnow)
+
+    learner = relationship("User", back_populates="certification_exams")
+    certificate = relationship("Certificate")
+
+
+class TrainerLearner(Base):
+    """
+    Milestone 4 (FR-1, FR-2) - Accessibility Trainer to Learner mapping.
+    Same one-trainer-per-learner pattern as InstructorStudent (Milestone 2),
+    so the Accessibility Trainer Dashboard can show "my learners" only.
+    """
+    __tablename__ = "trainer_learners"
+
+    id = Column(Integer, primary_key=True, index=True)
+    trainer_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    learner_id = Column(Integer, ForeignKey("users.id"), unique=True, nullable=False)
+    assigned_at = Column(DateTime, default=datetime.utcnow)
+
+    trainer = relationship("User", back_populates="trainer_learners", foreign_keys=[trainer_id])
+    learner = relationship("User", back_populates="trainer_link", foreign_keys=[learner_id])
