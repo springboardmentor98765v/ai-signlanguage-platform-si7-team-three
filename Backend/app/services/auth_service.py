@@ -6,6 +6,7 @@ import bcrypt
 from app.utils.security import create_access_token
 from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
+from app.utils.security import ACCESS_TOKEN_EXPIRE_DAYS
 
 from app.models.user import User
 
@@ -79,7 +80,7 @@ def login_user(user, db: Session):
         payload = {
             "sub": db_user.email,
             "role": db_user.role,
-            "exp": datetime.utcnow() + timedelta(hours=1)
+            "exp": datetime.utcnow() + timedelta(days=ACCESS_TOKEN_EXPIRE_DAYS)
         }
 
         token = create_access_token(payload)

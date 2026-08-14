@@ -38,7 +38,10 @@ def add_lesson(
     if current_user.role not in ["Admin", "Instructor"]:
         raise HTTPException(
             status_code=403,
-            detail="Only Admin or Instructor can create lessons"
+            detail={
+                "success": False,
+                "message": "Access denied. Only Admins and Instructors can create lessons."
+            }
         )
 
     created = create_lesson(course_id, module_id, lesson)
@@ -46,7 +49,10 @@ def add_lesson(
     if created is None:
         raise HTTPException(
             status_code=404,
-            detail="Course or Module not found"
+            detail={
+                "success": False,
+                "message": "Course or Module not found."
+            }
         )
 
     return created
@@ -97,12 +103,18 @@ def remove_lesson(
         )
 
     return {"message": "Lesson deleted successfully"}
-    
+
 @router.get("/{course_id}")
 def read_course(course_id: int):
     course = get_course(course_id)
     if course is None:
-        raise HTTPException(status_code=404, detail="Course not found")
+        raise HTTPException(
+            status_code=404,
+            detail={
+                "success":False,
+                "message":"Course not found."
+            }
+        )
     return course
 
 
@@ -115,7 +127,13 @@ def add_course(course: Course):
 def edit_course(course_id: int, course: Course):
     updated = update_course(course_id, course)
     if updated is None:
-        raise HTTPException(status_code=404, detail="Course not found")
+        raise HTTPException(
+            status_code=404, 
+            detail={
+                "success":False,
+                "message":"Course not found."
+            }   
+        )
     return updated
 
 
@@ -123,5 +141,11 @@ def edit_course(course_id: int, course: Course):
 def remove_course(course_id: int):
     deleted = delete_course(course_id)
     if deleted is None:
-        raise HTTPException(status_code=404, detail="Course not found")
+        raise HTTPException(
+            status_code=404, 
+            detail={
+                "success":False,
+                "message":"Course not found."
+            }
+        )
     return {"message": "Course deleted successfully"}
