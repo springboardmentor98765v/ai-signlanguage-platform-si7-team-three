@@ -1,0 +1,67 @@
+# Production stack for the Sign Language Platform.
+#
+# Milestone 4, Day 3 (SRS): "Finalise the production docker-compose setup
+# that brings the frontend, backend, AI service and database together in
+# one place, with all secrets read from environment variables (never
+# hard-coded)."
+#
+# Unlike docker-compose.yml (local dev, spins up its own Postgres
+# container), this file assumes the database ALREADY EXISTS on Supabase
+# (or wherever the team's production DB lives) - it only runs the
+# backend and AI service, both configured entirely via .env.production.
+#
+# Usage:
+#   cp .env.production.example .env.production
+#   # fill in real production values in .env.production
+#   docker compose -f docker-compose.prod.yml --env-file .env.production up --build
+
+services:
+  backend:
+    build: .
+    container_name: slp_backend_prod
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - SLP_SECRET_KEY=${SLP_SECRET_KEY}
+      - SMTP_ENABLED=${SMTP_ENABLED:-false}
+      - SMTP_HOST=${SMTP_HOST:-smtp.gmail.com}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USERNAME=${SMTP_USERNAME:-}
+      - SMTP_PASSWORD=${SMTP_PASSWORD:-}
+      - SMTP_FROM_EMAIL=${SMTP_FROM_EMAIL:-}
+      - FRONTEND_URL=${FRONTEND_URL}
+      - CERTIFICATE_STORAGE_PATH=${CERTIFICATE_STORAGE_PATH:-/app/certificates}
+    volumes:
+      - slp_certificates_prod:/app/certificates
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  ai_service:
+    build:
+      context: .
+      dockerfile: Dockerfile.ai
+    container_name: slp_ai_service_prod
+    restart: unless-stopped
+    ports:
+      - "8001:8001"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8001/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # NOTE: no `db` service here on purpose - production database is the
+  # already-live Supabase instance, referenced via DATABASE_URL above,
+  # not a container we spin up ourselves.
+  #
+  # NOTE: frontend service will be added here once Intern 1 has a
+  # Dockerfile for it (not yet built as of Milestone 4 Day 3) - for now,
+  # frontend deploys separately to Netlify/Vercel per the SRS.
+
+volumes:
+  slp_certificates_prod:

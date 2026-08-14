@@ -11,3 +11,7 @@ venv/
 .venv/
 *.egg-info/
 backups/
+.env
+.env.*
+!.env.example
+!.env.production.example
