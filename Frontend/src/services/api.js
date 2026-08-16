@@ -1,5 +1,16 @@
 import axios from 'axios'
-import { mockLessons, mockDashboard, mockStudents, mockAdminUsers, mockAdminStats } from '../data/mockData'
+import {
+  mockLessons,
+  mockDashboard,
+  mockStudents,
+  mockAdminUsers,
+  mockAdminStats,
+  mockNotifications,
+  mockBadges,
+  mockStreak,
+  mockLeaderboard,
+  mockCurrentLeaderboardUserId,
+} from '../data/mockData'
 
 // ---------------------------------------------------------------------------
 // Base axios client. Point VITE_API_URL at Intern 2's FastAPI gateway once
@@ -226,6 +237,91 @@ export const analyticsApi = {
 // and Feedback services (FR-3, FR-4). This is the join point described in
 // Section 5 of the SRS: predicted_sign + confidence feed the scoring engine.
 // ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+// Notifications — in-app bell (Milestone 3, Day 2)
+// ---------------------------------------------------------------------------
+export const notificationApi = {
+  async getNotifications() {
+    if (USE_MOCKS) {
+      await delay(400)
+      return mockNotifications
+    }
+    const { data } = await client.get('/notifications')
+    return data
+  },
+
+  async markAsRead(id) {
+    if (USE_MOCKS) {
+      await delay(200)
+      const target = mockNotifications.find((n) => n.id === id)
+      if (target) target.read = true
+      return target
+    }
+    const { data } = await client.patch(`/notifications/${id}/read`)
+    return data
+  },
+
+  async markAllAsRead() {
+    if (USE_MOCKS) {
+      await delay(200)
+      mockNotifications.forEach((n) => (n.read = true))
+      return mockNotifications
+    }
+    const { data } = await client.patch('/notifications/read-all')
+    return data
+  },
+}
+
+// ---------------------------------------------------------------------------
+// Gamification — badges, streaks, leaderboard (Milestone 3, Days 3-4)
+// ---------------------------------------------------------------------------
+export const gamificationApi = {
+  async getBadgesAndStreak() {
+    if (USE_MOCKS) {
+      await delay(400)
+      return { badges: mockBadges, streak: mockStreak }
+    }
+    const { data } = await client.get('/gamification/badges')
+    return data
+  },
+
+  async getLeaderboard(sortBy = 'accuracy') {
+    if (USE_MOCKS) {
+      await delay(400)
+      const entries = [...mockLeaderboard].sort((a, b) => b[sortBy] - a[sortBy])
+      return { entries, currentUserId: mockCurrentLeaderboardUserId }
+    }
+    const { data } = await client.get(`/gamification/leaderboard?sortBy=${sortBy}`)
+    return data
+  },
+}
+
+// ---------------------------------------------------------------------------
+// Report export (Milestone 3, Day 5) — resolves the "PDF export deferred"
+// note from Milestone 1. Mock mode builds a small CSV client-side so the
+// full download flow is testable end to end.
+// ---------------------------------------------------------------------------
+export const reportApi = {
+  async exportReport(format = 'csv') {
+    if (USE_MOCKS) {
+      await delay(600)
+      const rows = [
+        ['Metric', 'Value'],
+        ['Accuracy', `${mockDashboard.accuracy}%`],
+        ['Lessons Completed', mockDashboard.lessonsCompleted],
+        ['Practice Hours', mockDashboard.practiceHours],
+        ['Current Streak', `${mockStreak.currentStreak} days`],
+      ]
+      const csv = rows.map((r) => r.join(',')).join('\n')
+      return new Blob([csv], { type: 'text/csv' })
+    }
+    const response = await client.get(`/reports/export?format=${format}`, {
+      responseType: 'blob',
+    })
+    return response.data
+  },
+}
+
 export const practiceApi = {
   async startSession(lessonId) {
     if (USE_MOCKS) {

@@ -31,12 +31,21 @@ export default function Practice() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lesson.id])
 
+  // Attaches the stream to the <video> element once both exist. The video
+  // tag is now ALWAYS mounted (see JSX below), so this fires reliably
+  // instead of racing against a conditional render — that race was the
+  // cause of "camera sometimes doesn't show" behavior.
+  useEffect(() => {
+    if (videoRef.current && streamRef.current) {
+      videoRef.current.srcObject = streamRef.current
+    }
+  }, [cameraOn])
+
   async function startCamera() {
     setCameraError('')
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } })
       streamRef.current = stream
-      if (videoRef.current) videoRef.current.srcObject = stream
       setCameraOn(true)
     } catch (err) {
       setCameraError('Camera access was denied or is unavailable. Check your browser permissions.')
@@ -53,9 +62,6 @@ export default function Practice() {
     if (!cameraOn) return
     setScanning(true)
     setResult(null)
-    // In Milestone 1, frame capture is wired to a mock response. From Day 7,
-    // this hands a real canvas-captured JPEG blob to Intern 3's prediction
-    // service via practiceApi.submitAttempt().
     const res = await practiceApi.submitAttempt(sessionId, targetLetter, null)
     setResult(res)
     setScanning(false)
@@ -74,10 +80,19 @@ export default function Practice() {
         {/* Webcam panel */}
         <GlassCard strong className="relative overflow-hidden p-4 md:p-6">
           <div className="relative aspect-video overflow-hidden rounded-2xl bg-night-950">
-            {cameraOn ? (
-              <video ref={videoRef} autoPlay playsInline muted className="h-full w-full -scale-x-100 object-cover" />
-            ) : (
-              <div className="flex h-full flex-col items-center justify-center gap-3 text-mist-500">
+            {/* Video is ALWAYS mounted so videoRef is always valid when
+                startCamera() runs — visibility is controlled with CSS
+                instead of conditional rendering. */}
+            <video
+              ref={videoRef}
+              autoPlay
+              playsInline
+              muted
+              className={`h-full w-full -scale-x-100 object-cover ${cameraOn ? 'opacity-100' : 'opacity-0'}`}
+            />
+
+            {!cameraOn && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-mist-500">
                 <Camera size={36} />
                 <p className="text-sm">Turn on your camera to start practicing</p>
               </div>
@@ -118,11 +133,7 @@ export default function Practice() {
               )}
             </div>
 
-            <button
-              onClick={handleCapture}
-              disabled={!cameraOn || scanning}
-              className="btn-primary"
-            >
+            <button onClick={handleCapture} disabled={!cameraOn || scanning} className="btn-primary">
               <Sparkles size={18} />
               {scanning ? 'Analysing…' : 'Capture & check'}
             </button>
