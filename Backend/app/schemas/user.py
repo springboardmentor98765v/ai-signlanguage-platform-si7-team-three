@@ -1,11 +1,11 @@
-from pydantic import BaseModel, EmailStr
-from typing import Optional
+from pydantic import BaseModel, EmailStr , Field
+from typing import Optional , Annotated
 
 
 class UserRegister(BaseModel):
-    full_name: str
+    full_name: str = Field(min_length=1)
     email: EmailStr
-    password: str
+    password: str = Field(min_length=8)
     role: Optional[str] = "Learner"
 
 
@@ -14,7 +14,7 @@ class UserLogin(BaseModel):
     password: str
 
 class UserUpdate(BaseModel):
-    full_name: str
+    full_name: str = Field(min_length=1)
     email:EmailStr
 
 class ForgotPasswordRequest(BaseModel):
@@ -23,7 +23,8 @@ class ForgotPasswordRequest(BaseModel):
 
 class ResetPasswordRequest(BaseModel):
     email: EmailStr
-    new_password: str  
+    current_password:str
+    new_password: str  = Field(min_length=8) 
 
 class ChangePasswordRequest(BaseModel):
     email: EmailStr
@@ -31,9 +32,9 @@ class ChangePasswordRequest(BaseModel):
     new_password: str
     
 class AssignStudentRequest(BaseModel):
-    instructor_id: int
-    student_id: int    
+    instructor_id: int = Field(gt=0)
+    student_id: int = Field(gt=0)   
 
 class BulkStatusUpdateRequest(BaseModel):
-    user_ids: list[int]
-    is_active: bool    
+    user_ids: list[Annotated[int, Field(gt=0)]] = Field(min_length=1)
+    is_active: bool 

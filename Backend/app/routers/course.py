@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Query, Depends
+from fastapi import APIRouter, HTTPException, Query, Depends, UploadFile, File
 from app.schemas.course import Course, Lesson
 from app.models.user import User
 from app.dependencies import get_current_user
@@ -12,6 +12,7 @@ from app.services.course_service import (
     create_lesson,
     update_lesson,
     delete_lesson,
+    bulk_upload_lessons,
 )
 
 router = APIRouter(prefix="/courses", tags=["Courses"])
@@ -119,33 +120,78 @@ def read_course(course_id: int):
 
 
 @router.post("/")
-def add_course(course: Course):
+def add_course(
+    course: Course,
+    current_user: User = Depends(get_current_user)
+):
+    if current_user.role not in ["Admin", "Instructor"]:
+        raise HTTPException(
+            status_code=403,
+            detail="Only Admin or Instructor can create courses"
+        )
+
     return create_course(course)
+
+@router.post("/bulk-upload")
+def upload_lessons_csv(
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user),
+):
+    if current_user.role not in ["Admin", "Instructor"]:
+        raise HTTPException(
+            status_code=403,
+            detail="Only Admin or Instructor can upload lessons"
+        )
+
+    return bulk_upload_lessons(file)
 
 
 @router.put("/{course_id}")
-def edit_course(course_id: int, course: Course):
+def edit_course(
+    course_id: int,
+    course: Course,
+    current_user: User = Depends(get_current_user)
+):
+    if current_user.role not in ["Admin", "Instructor"]:
+        raise HTTPException(
+            status_code=403,
+            detail="Only Admin or Instructor can update courses"
+        )
+
     updated = update_course(course_id, course)
+
     if updated is None:
         raise HTTPException(
-            status_code=404, 
+            status_code=404,
             detail={
-                "success":False,
-                "message":"Course not found."
-            }   
+                "success": False,
+                "message": "Course not found."
+            }
         )
+
     return updated
 
 
 @router.delete("/{course_id}")
-def remove_course(course_id: int):
+def remove_course(
+    course_id: int,
+    current_user: User = Depends(get_current_user)
+):
+    if current_user.role not in ["Admin", "Instructor"]:
+        raise HTTPException(
+            status_code=403,
+            detail="Only Admin or Instructor can delete courses"
+        )
+
     deleted = delete_course(course_id)
+
     if deleted is None:
         raise HTTPException(
-            status_code=404, 
+            status_code=404,
             detail={
-                "success":False,
-                "message":"Course not found."
+                "success": False,
+                "message": "Course not found."
             }
         )
+
     return {"message": "Course deleted successfully"}

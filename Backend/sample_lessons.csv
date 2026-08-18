@@ -1,0 +1,6 @@
+id,course_id,module_id,title,description,category,difficulty
+37,1,1,Letter AA,Learn sign for AA,Alphabet,Easy
+38,1,1,Letter AB,Learn sign for AB,Alphabet,Easy
+39,1,1,Letter AC,Learn sign for AC,Alphabet,Medium
+40,1,1,Letter AD,Learn sign for AD,Alphabet,Medium
+41,1,1,Letter AE,Learn sign for AE,Alphabet,Hard

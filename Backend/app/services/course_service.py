@@ -1,5 +1,6 @@
 from app.schemas.course import Course, Module, Lesson
-
+import csv
+from io import StringIO
 # Sample Course Data
 courses = [
     Course(
@@ -141,3 +142,28 @@ def delete_lesson(course_id: int, module_id: int, lesson_id: int):
                     return module.lessons.pop(i)
 
     return None    
+
+def bulk_upload_lessons(file):
+    content = file.file.read().decode("utf-8")
+    reader = csv.DictReader(StringIO(content))
+
+    uploaded = 0
+
+    for row in reader:
+        course_id = int(row["course_id"])
+        module_id = int(row["module_id"])
+
+        lesson = Lesson(
+            id=int(row["id"]),
+            title=row["title"],
+            description=row["description"],
+            category=row["category"],
+            difficulty=row["difficulty"]
+        )
+
+        if create_lesson(course_id, module_id, lesson):
+            uploaded += 1
+
+    return {
+        "message": f"{uploaded} lessons uploaded successfully"
+    }

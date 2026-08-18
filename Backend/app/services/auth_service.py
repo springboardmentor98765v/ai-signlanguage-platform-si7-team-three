@@ -28,13 +28,9 @@ def register_user(user, db: Session):
         bcrypt.gensalt()
     ).decode("utf-8")
 
-    # Default role
+    # New registrations always start as Learner.
+    # Admin can change the role later through the admin API.
     role = "Learner"
-
-    # Allow admin/instructor only if specified
-    if hasattr(user, "role"):
-        if user.role in ["Learner", "Instructor", "Admin"]:
-            role = user.role
 
     new_user = User(
         full_name=user.full_name,

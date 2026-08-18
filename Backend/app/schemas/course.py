@@ -1,22 +1,22 @@
-from pydantic import BaseModel
+from pydantic import BaseModel , Field
 
 
 class Lesson(BaseModel):
-    id: int
-    title: str
-    description: str
-    category: str
-    difficulty: str
+    id: int = Field(gt=0)
+    title: str = Field(min_length=1)
+    description: str = Field(min_length=1)
+    category: str = Field(min_length=1)
+    difficulty: str = Field(min_length=1)
 
 
 class Module(BaseModel):
-    id: int
-    title: str
+    id: int = Field(gt=0)
+    title: str = Field(min_length=1)
     lessons: list[Lesson]
 
 
 class Course(BaseModel):
-    id: int
-    title: str
-    description: str
+    id: int = Field(gt=0)
+    title: str = Field(min_length=1)
+    description: str = Field(min_length=1)
     modules: list[Module]
