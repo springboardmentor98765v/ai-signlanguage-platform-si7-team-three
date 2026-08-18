@@ -3,9 +3,15 @@ import smtplib
 from email.message import EmailMessage
 import os
 import bcrypt
+import time
+
+login_attempts = {}
+MAX_LOGIN_ATTEMPTS = 5
+LOGIN_WINDOW = 60
 from app.utils.security import create_access_token
 from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
+from fastapi import HTTPException
 from app.utils.security import ACCESS_TOKEN_EXPIRE_DAYS
 
 from app.models.user import User
@@ -66,6 +72,26 @@ def register_user(user, db: Session):
 
 def login_user(user, db: Session):
 
+    email = str(user.email).lower()
+    now = time.time()
+
+    # Remove attempts older than 60 seconds
+    if email not in login_attempts:
+        login_attempts[email] = []
+
+    login_attempts[email] = [
+        timestamp
+        for timestamp in login_attempts[email]
+        if now - timestamp < LOGIN_WINDOW
+    ]
+
+    # Block after 5 attempts within one minute
+    if len(login_attempts[email]) >= MAX_LOGIN_ATTEMPTS:
+        raise HTTPException(
+            status_code=429,
+            detail="Too many login attempts. Please try again later."
+        )
+
     db_user = db.query(User).filter(User.email == user.email).first()
 
     if db_user and bcrypt.checkpw(
@@ -73,10 +99,15 @@ def login_user(user, db: Session):
         db_user.hashed_password.encode("utf-8")
     ):
 
+        # Successful login — clear failed attempts
+        login_attempts[email] = []
+
         payload = {
             "sub": db_user.email,
             "role": db_user.role,
-            "exp": datetime.utcnow() + timedelta(days=ACCESS_TOKEN_EXPIRE_DAYS)
+            "exp": datetime.utcnow() + timedelta(
+                days=ACCESS_TOKEN_EXPIRE_DAYS
+            )
         }
 
         token = create_access_token(payload)
@@ -84,13 +115,16 @@ def login_user(user, db: Session):
         return {
             "token": token,
             "user": {
-            "id": db_user.id,
-            "name": db_user.full_name,
-            "email": db_user.email,
-            "role": db_user.role,
-            "profileComplete": True
+                "id": db_user.id,
+                "name": db_user.full_name,
+                "email": db_user.email,
+                "role": db_user.role,
+                "profileComplete": True
             }
         }
+
+    # Record failed attempt
+    login_attempts[email].append(now)
 
     return None
 
